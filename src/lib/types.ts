@@ -15,5 +15,5 @@ export interface BookingRequest {
 }
 
 export interface AvailabilityResponse {
-    slots: AvailabilitySlot[]; // Verify exact shape from API docs if possible, otherwise assume list
+    slots: AvailabilitySlot[];
 }

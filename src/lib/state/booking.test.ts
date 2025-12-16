@@ -46,7 +46,7 @@ describe('BookingState', () => {
             json: async () => mockSlots
         });
 
-        const date = new Date(2023, 9, 10); // Oct 10 2023
+        const date = new Date(2026, 1, 10); // Jan 10 2026
         await bookingState.fetchAvailability(date);
 
         expect(globalThis.fetch).toHaveBeenCalled();

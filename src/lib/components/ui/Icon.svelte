@@ -4,6 +4,7 @@
     let { name, class: className = "", ...rest } = $props();
 
     // Define available icons for type safety / strict mapping if desired, but for now we dynamic load
+    // Honestly, should just import these directly, reduce code. But sometimes icons can be bigger in size.
     const icons: Record<string, () => Promise<any>> = {
         "left-chevron": () => import("../icons/ChevronLeft.svelte"),
         "right-chevron": () => import("../icons/ChevronRight.svelte"),

@@ -38,7 +38,7 @@
 </script>
 
 <div
-    class="h-full flex flex-col items-center justify-center text-center p-6 animate-in fade-in zoom-in duration-300"
+    class="h-full flex flex-col items-center justify-center text-center p-2 animate-in fade-in zoom-in duration-300"
 >
     <!-- Success Icon -->
     <div
@@ -47,38 +47,44 @@
         <Icon name="check" class="w-8 h-8" />
     </div>
 
-    <h2 class="text-2xl font-bold text-gray-900 mb-2">Authenticated!</h2>
+    <h2 class="text-2xl font-bold text-gray-900 mb-2">Meeting Scheduled!</h2>
     <p class="text-gray-600 mb-6">You are scheduled with ACME Corp.</p>
 
     <!-- Meeting Details Card -->
     <div
         class="bg-gray-50 rounded-lg p-5 mb-8 w-full border border-gray-100 shadow-sm"
     >
-        <div class="flex flex-col gap-3">
-            <div
-                class="flex items-center justify-center text-gray-800 font-medium"
-            >
-                <Icon
-                    name="calendar"
-                    class="w-5 h-5 mr-3 text-indigo-500 shrink-0"
-                />
-                <span>{format(start, "EEEE, MMMM do, yyyy")}</span>
-            </div>
-            <div class="flex items-center justify-center text-gray-600">
-                <Icon
-                    name="clock"
-                    class="w-5 h-5 mr-3 text-indigo-500 shrink-0"
-                />
-                <div class="flex items-center">
-                    <span
-                        >{format(start, "h:mm a")} - {format(
-                            new Date(start.getTime() + 30 * 60000),
-                            "h:mm a",
-                        )}</span
+        <div class="flex items-center justify-center">
+            <div class="flex flex-col gap-3 items-start justify-center w-fit">
+                <div
+                    class="flex items-center justify-center text-gray-800 font-medium"
+                >
+                    <Icon
+                        name="calendar"
+                        class="w-5 h-5 mr-3 text-indigo-500 shrink-0"
+                    />
+                    <!-- This will error if start is not valid, I should use $derived above to get the best format -->
+                    <span class="w-max"
+                        >{format(start, "EEEE, MMMM do, yyyy")}</span
                     >
-                    <span class="text-xs text-gray-400 ml-2 pt-0.5"
-                        >({bookingState.timeZone})</span
-                    >
+                </div>
+                <div class="flex items-center justify-center text-gray-600">
+                    <Icon
+                        name="clock"
+                        class="w-5 h-5 mr-3 text-indigo-500 shrink-0"
+                    />
+                    <div class="flex items-center">
+                        <!-- This will error if start is not valid, I should use $derived above to get the best format -->
+                        <span>
+                            {format(start, "h:mm a")} - {format(
+                                new Date(start.getTime() + 30 * 60000),
+                                "h:mm a",
+                            )}
+                        </span>
+                        <span class="text-xs text-gray-400 ml-2 pt-0.5">
+                            ({bookingState.timeZone})
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>

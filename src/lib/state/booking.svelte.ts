@@ -1,5 +1,5 @@
 import type { BookingRequest, AvailabilitySlot } from '$lib/types';
-import { format, startOfMonth, endOfMonth, parseISO, subMonths, addMonths, isBefore, startOfDay, max, addMinutes, getMinutes, startOfMinute, setSeconds, setMilliseconds } from 'date-fns';
+import { format, startOfMonth, endOfMonth, parseISO, subMonths, addMonths, isBefore, startOfDay, max, addMinutes, getMinutes, startOfMinute, setMinutes, isAfter } from 'date-fns';
 
 type BookingStep = 'calendar' | 'time' | 'form' | 'success';
 
@@ -85,15 +85,12 @@ export class BookingState {
             const today = startOfDay(new Date());
             const idealStart = startOfMonth(subMonths(date, 1));
 
-            // Allow querying a bit into the past (beginning of current month) if we are in the middle of it?
-            // Actually, requirements say "remove any date before the current day".
-            // So we should clamp the start to Today if idealStart is in the past.
             const start = max([idealStart, today]);
             const end = endOfMonth(addMonths(date, 1));
 
             // If start is after end (e.g. looking at deep past history?), abort
             if (isBefore(end, start)) {
-                this.availableDays = new Set(); // Clear or leave as is?
+                this.availableDays = new Set();
                 return;
             }
 
@@ -101,7 +98,7 @@ export class BookingState {
             const endStr = format(end, "yyyy-MM-dd");
 
             const res = await fetch(`/api/availability?start=${startStr}&end=${endStr}`);
-            if (!res.ok) return; // Silent fail for indicators
+            if (!res?.ok) return; // Silent fail could add toasts
 
             const data: AvailabilitySlot[] = await res.json();
 
@@ -135,45 +132,43 @@ export class BookingState {
             const endStr = format(date, "yyyy-MM-dd");
 
             const res = await fetch(`/api/availability?start=${startStr}&end=${endStr}`);
-            if (!res.ok) throw new Error(await res.text());
+            if (!res?.ok) throw new Error(await res?.text());
 
-            const ranges: AvailabilitySlot[] = await res.json();
+            const ranges: AvailabilitySlot[] = await res?.json();
 
             // Process ranges into 30 minute slots starting every 15 minutes
+            // magic numbers removed
+            const SLOT_DURATION_MIN = 30;
+            const SLOT_STEP_MIN = 15;
+
             const slots: AvailabilitySlot[] = [];
+
             for (const range of ranges) {
-                let current = parseISO(range.start);
-                const rangeEnd = parseISO(range.end);
+                let start = parseISO(range.start);
+                const end = parseISO(range.end);
 
-                // Round up to nearest 15 mins
-                const m = getMinutes(current);
-                const remainder = m % 15;
-                if (remainder !== 0) {
-                    const add = 15 - remainder;
-                    current = addMinutes(current, add);
+                // Round start up to next 15-minute boundary
+                const minutes = getMinutes(start);
+                const roundedMinutes = Math.ceil(minutes / SLOT_STEP_MIN) * SLOT_STEP_MIN;
+                start = setMinutes(start, roundedMinutes);
+                start = startOfMinute(start);
+
+                // Latest possible start that still fits a 30-min slot
+                const lastStart = addMinutes(end, -SLOT_DURATION_MIN);
+
+                if (!isBefore(start, end) || !isBefore(start, addMinutes(end, 1))) {
+                    continue;
                 }
-                // Ensure seconds/ms are clean
-                current = startOfMinute(current);
-                current = setSeconds(current, 0);
-                current = setMilliseconds(current, 0);
 
-                // Prevent infinite loops if invalid range
-                if (!isBefore(current, rangeEnd)) continue;
-
-                while (isBefore(current, rangeEnd)) {
-                    // Slot duration is 30 mins
-                    const slotEnd = addMinutes(current, 30);
-
-                    // Ensure the full 30-min slot fits within the available range
-                    if (isBefore(rangeEnd, slotEnd)) break;
+                while (!isAfter(start, lastStart)) {
+                    const slotEnd = addMinutes(start, SLOT_DURATION_MIN);
 
                     slots.push({
-                        start: format(current, "yyyy-MM-dd'T'HH:mm:ss"),
+                        start: format(start, "yyyy-MM-dd'T'HH:mm:ss"),
                         end: format(slotEnd, "yyyy-MM-dd'T'HH:mm:ss")
                     });
 
-                    // Increment validation start time by 15 mins for overlapping options
-                    current = addMinutes(current, 15);
+                    start = addMinutes(start, SLOT_STEP_MIN);
                 }
             }
             // This logic for splitting up the time could be anything.. round to 30 min slots, only round if time isnt even, etc. 
@@ -187,16 +182,7 @@ export class BookingState {
         }
     }
 
-    selectDate(date: Date) {
-        // Deprecated in favor of URL nav
-    }
-
-    selectSlot(slot: AvailabilitySlot) {
-        // Deprecated in favor of URL nav
-    }
-
     reset() {
-        // Should reset URL params?
         this.step = 'calendar';
         this.selectedDate = null;
         this.selectedTime = null;

@@ -51,6 +51,7 @@
         <h3 class="text-lg font-semibold text-gray-800">Available times</h3>
         <p class="text-sm text-gray-500">
             {#if bookingState.selectedDate}
+                <!-- This will error if start is not valid, I should use $derived above to get the best format -->
                 {format(bookingState.selectedDate, "EEEE, MMMM do")}
             {/if}
         </p>
@@ -97,6 +98,7 @@
                     disabled={isPast}
                     onclick={() => !isPast && handleSelect(slot)}
                 >
+                    <!-- This will error if start is not valid, I should use $derived above to get the best format -->
                     <span class="font-medium {isPast ? 'text-gray-400' : ''}"
                         >{format(start, "h:mm a")}</span
                     >

@@ -2,7 +2,7 @@
     import { bookingState } from "$lib/state/booking.svelte";
     import Icon from "./Icon.svelte";
 
-    // Future-proofing for "adjustability" as requested
+    // Future-proofing for "adjustability"
     // For now, it just displays the state's timezone
 </script>
 

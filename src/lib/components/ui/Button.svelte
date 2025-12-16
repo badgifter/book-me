@@ -2,7 +2,6 @@
     import type { HTMLButtonAttributes } from "svelte/elements";
     import Icon from "./Icon.svelte";
 
-    // Svelte 5 props
     let {
         children,
         variant = "primary",
